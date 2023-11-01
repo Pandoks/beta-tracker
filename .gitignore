@@ -1,0 +1,7 @@
+.env
+models/yolo/example/runs
+models/yolo/custom
+data/yolo
+.ipynb_checkpoints
+*.pt
+*.mp4
