@@ -74,7 +74,7 @@ def parse_player(data):
         if len(label) == 7:
             id = int(label[-3])
         labels[label_class].append((center_player(coords), conf, id))
-        return labels
+    return labels
 
 
 def define_paint(corners):
@@ -164,6 +164,8 @@ def track():
         player_data = player_detection_list.pop(0)
         print(player_data)
         court_data = parse_court(court_data)
+        player_data = parse_player(player_data)
+        print("player_data: ", player_data)
         homography_matrix = homography(court_data)
 
     player_thread.join()
