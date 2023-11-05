@@ -1,5 +1,7 @@
 from ultralytics import YOLO
 from multiprocessing import Process, Queue
+import numpy as np
+import cv2
 import collections
 
 
@@ -56,6 +58,33 @@ def define_paint(corners):
         "bottom_left": sorted_left_y_corners[0],
         "bottom_right": sorted_right_y_corners[0],
     }
+
+
+def homography(labels, threshold=0):
+    paint = define_paint(labels["paint"])
+    court_points = np.array(
+        [
+            paint["top_left"],
+            paint["top_right"],
+            paint["bottom_right"],
+            paint["bottom_left"],
+        ],
+        dtype="float32",
+    )
+
+    diagram_points = np.array(
+        [
+            court_points["right_paint"]["t_left"],
+            court_points["right_paint"]["t_right"],
+            court_points["right_paint"]["b_right"],
+            court_points["right_paint"]["b_left"],
+        ],
+        dtype="float32",
+    )
+
+    homography_matrix, _ = cv2.findHomography(court_points, diagram_points)
+
+    return homography_matrix
 
 
 def detect(detection_list, model_path, source):
