@@ -28,9 +28,14 @@ DIAGRAM_POINTS = {
 COURT_CLASSES = ["corner", "middle", "paint", "tick"]
 
 
-def center(coords):
+def center_court(coords):
     x, y, w, h = coords
     return (int(x + w / 2), int(y + h / 2))
+
+
+def center_player(coords):
+    x, y, w, h = coords
+    return (int(x + w / 2), int(y + h))
 
 
 # Only for court
@@ -44,7 +49,7 @@ def parse_court(data):
         if len(label) == 7:
             id = int(label[-3])
 
-        labels[label_class].append((center(coords), conf, id))
+        labels[label_class].append((center_court(coords), conf, id))
 
     return labels
 
