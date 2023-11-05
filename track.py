@@ -28,10 +28,9 @@ DIAGRAM_POINTS = {
 COURT_CLASSES = ["corner", "middle", "paint", "tick"]
 
 
-def center(box):
-    x, y, w, h, _, _, _ = box
-    x, y, w, h = int(x), int(y), int(w), int(h)
-    return (x + int(w / 2), y + int(h / 2))
+def center(coords):
+    x, y, w, h = coords
+    return (int(x + w / 2), int(y + h / 2))
 
 
 # Only for court
@@ -39,13 +38,14 @@ def parse_court(data):
     print("in parse")
     labels = collections.defaultdict(list)
     for label in data:
+        coords = (label[0], label[1], label[2], label[3])
+        conf = label[-2].item()
+        label_class = COURT_CLASSES[int(label[-1])]
+        id = None
         if len(label) == 7:
             id = int(label[-3])
-            conf = label[-2].item()
-            label_class = COURT_CLASSES[int(label[-1])]
-            labels[label_class].append((center(label), conf, id))
-        elif len(label) == 6:
-            print("test")
+
+        labels[label_class].append((center(coords), conf, id))
 
     return labels
 
