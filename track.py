@@ -25,7 +25,7 @@ DIAGRAM_POINTS = {
     },
 }
 
-CLASSES = ["corner", "middle", "paint", "tick"]
+COURT_CLASSES = ["corner", "middle", "paint", "tick"]
 
 
 def center(box):
@@ -34,13 +34,19 @@ def center(box):
     return (x + int(w / 2), y + int(h / 2))
 
 
-def parse(data):
+# Only for court
+def parse_court(data):
+    print("in parse")
     labels = collections.defaultdict(list)
     for label in data:
-        id = int(label[4])
-        conf = label[5].item()
-        label_class = CLASSES[int(label[6])]
-        labels[label_class].append((center(label), conf, id))
+        if len(label) == 7:
+            id = int(label[-3])
+            conf = label[-2].item()
+            label_class = COURT_CLASSES[int(label[-1])]
+            labels[label_class].append((center(label), conf, id))
+        elif len(label) == 6:
+            print("test")
+
     return labels
 
 
@@ -89,9 +95,10 @@ def homography(labels, threshold=0):
 def detect(detection_list, model_path, source):
     model = YOLO(model_path)
     detections = model.track(
-        source=source, project="./", conf=0.1, stream=True, show=True
+        source=source, project="./", conf=0.1, iou=0.5, stream=True, show=True
     )
     for detection in detections:
+        print(detection.boxes)
         detection_list.append(detection.boxes.data)
 
 
@@ -123,8 +130,8 @@ def track():
 
         court_data = court_detection_list.pop(0)
         player_data = player_detection_list.pop(0)
-        court_data = parse(court_data)
-        player_data = parse(player_data)
+        court_data = parse_court(court_data)
+        # player_data = parse(player_data)
 
     player_thread.join()
     court_thread.join()
