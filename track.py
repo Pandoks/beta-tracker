@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-from multiprocessing import Manager, Process, Queue
+from multiprocessing import Manager, Process
 import numpy as np
 import cv2
 import collections
@@ -35,7 +35,6 @@ def center(coords):
 
 # Only for court
 def parse_court(data):
-    print("in parse")
     labels = collections.defaultdict(list)
     for label in data:
         coords = (label[0], label[1], label[2], label[3])
@@ -51,6 +50,9 @@ def parse_court(data):
 
 
 def define_paint(corners):
+    if len(corners) != 4:
+        return None
+
     sorted_x_corners = sorted(corners, key=lambda x: x[0])
     left_corners = sorted_x_corners[:2]
     right_corners = sorted_x_corners[2:]
@@ -67,22 +69,25 @@ def define_paint(corners):
 
 def homography(labels, threshold=0):
     paint = define_paint(labels["paint"])
+    if not paint:
+        return None
+
     court_points = np.array(
         [
-            paint["top_left"],
-            paint["top_right"],
-            paint["bottom_right"],
-            paint["bottom_left"],
+            paint["top_left"][0],
+            paint["top_right"][0],
+            paint["bottom_right"][0],
+            paint["bottom_left"][0],
         ],
         dtype="float32",
     )
 
     diagram_points = np.array(
         [
-            court_points["right_paint"]["t_left"],
-            court_points["right_paint"]["t_right"],
-            court_points["right_paint"]["b_right"],
-            court_points["right_paint"]["b_left"],
+            DIAGRAM_POINTS["right_paint"]["t_left"],
+            DIAGRAM_POINTS["right_paint"]["t_right"],
+            DIAGRAM_POINTS["right_paint"]["b_right"],
+            DIAGRAM_POINTS["right_paint"]["b_left"],
         ],
         dtype="float32",
     )
@@ -98,7 +103,6 @@ def detect(detection_list, model_path, source):
         source=source, project="./", conf=0.1, iou=0.5, stream=True, show=True
     )
     for detection in detections:
-        print(detection.boxes)
         detection_list.append(detection.boxes.data)
 
 
@@ -131,6 +135,9 @@ def track():
         court_data = court_detection_list.pop(0)
         player_data = player_detection_list.pop(0)
         court_data = parse_court(court_data)
+        print("court_data: ", court_data)
+        homography_matrix = homography(court_data)
+        print("homography: ", homography_matrix)
         # player_data = parse(player_data)
 
     player_thread.join()
