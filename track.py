@@ -23,6 +23,12 @@ DIAGRAM_POINTS = {
 }
 
 
+def center(box):
+    x, y, w, h, _, _, _ = box
+    x, y, w, h = int(x), int(y), int(w), int(h)
+    return (x + int(w / 2), y + int(h / 2))
+
+
 def detect(detection_list, model_path, source):
     model = YOLO(model_path)
     detections = model.track(
