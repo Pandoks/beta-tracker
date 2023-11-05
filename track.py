@@ -35,7 +35,6 @@ def center(box):
 
 
 def parse(data):
-    data = data.boxes.data
     labels = collections.defaultdict(list)
     for label in data:
         id = int(label[4])
@@ -122,8 +121,10 @@ def track():
         if not len(player_detection_list) or not len(court_detection_list):
             continue
 
-        player_data = player_detection_list.pop(0)
         court_data = court_detection_list.pop(0)
+        player_data = player_detection_list.pop(0)
+        court_data = parse(court_data)
+        player_data = parse(player_data)
 
     player_thread.join()
     court_thread.join()
