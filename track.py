@@ -26,6 +26,17 @@ DIAGRAM_POINTS = {
 }
 
 COURT_CLASSES = ["corner", "middle", "paint", "tick"]
+PLAYER_CLASSES = [
+    "Ball",
+    "Hoop",
+    "Period",
+    "Player",
+    "Ref",
+    "Shot Clock",
+    "Team Name",
+    "Team Points",
+    "Time Remaining",
+]
 
 
 def center_court(coords):
@@ -38,7 +49,6 @@ def center_player(coords):
     return (int(x + w / 2), int(y + h))
 
 
-# Only for court
 def parse_court(data):
     labels = collections.defaultdict(list)
     for label in data:
@@ -52,6 +62,19 @@ def parse_court(data):
         labels[label_class].append((center_court(coords), conf, id))
 
     return labels
+
+
+def parse_player(data):
+    labels = collections.defaultdict(list)
+    for label in data:
+        coords = (label[0], label[1], label[2], label[3])
+        conf = label[-2].item()
+        label_class = PLAYER_CLASSES[int(label[-1])]
+        id = None
+        if len(label) == 7:
+            id = int(label[-3])
+        labels[label_class].append((center_player(coords), conf, id))
+        return labels
 
 
 def define_paint(corners):
@@ -139,11 +162,9 @@ def track():
 
         court_data = court_detection_list.pop(0)
         player_data = player_detection_list.pop(0)
+        print(player_data)
         court_data = parse_court(court_data)
-        print("court_data: ", court_data)
         homography_matrix = homography(court_data)
-        print("homography: ", homography_matrix)
-        # player_data = parse(player_data)
 
     player_thread.join()
     court_thread.join()
