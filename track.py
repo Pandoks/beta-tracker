@@ -43,6 +43,21 @@ def parse(data):
     return labels
 
 
+def define_paint(corners):
+    sorted_x_corners = sorted(corners, key=lambda x: x[0])
+    left_corners = sorted_x_corners[:2]
+    right_corners = sorted_x_corners[2:]
+
+    sorted_left_y_corners = sorted(left_corners, key=lambda x: x[1])
+    sorted_right_y_corners = sorted(right_corners, key=lambda x: x[1])
+    return {
+        "top_left": sorted_left_y_corners[1],
+        "top_right": sorted_right_y_corners[1],
+        "bottom_left": sorted_left_y_corners[0],
+        "bottom_right": sorted_right_y_corners[0],
+    }
+
+
 def detect(detection_list, model_path, source):
     model = YOLO(model_path)
     detections = model.track(
