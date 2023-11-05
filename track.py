@@ -24,7 +24,6 @@ DIAGRAM_POINTS = {
         "b_right": (1855, 730),
     },
 }
-COURT_IMAGE = cv2.imread("data/court.png")
 
 COURT_CLASSES = ["corner", "middle", "paint", "tick"]
 PLAYER_CLASSES = [
@@ -177,6 +176,11 @@ def track():
         player_data = parse_player(player_data)
         homography_matrix = homography(court_data)
         transformed_points = transform_points(player_data["Player"], homography_matrix)
+        image = cv2.imread("data/court.png")
+        for x, y in transformed_points:
+            cv2.circle(image, (x, y), radius=5, color=(0, 255, 0), thickness=-1)
+        cv2.imshow("court points", image)
+        cv2.waitKey(1)
 
     player_thread.join()
     court_thread.join()
