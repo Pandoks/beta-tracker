@@ -24,6 +24,7 @@ DIAGRAM_POINTS = {
         "b_right": (1855, 730),
     },
 }
+COURT_IMAGE = cv2.imread("data/court.png")
 
 COURT_CLASSES = ["corner", "middle", "paint", "tick"]
 PLAYER_CLASSES = [
@@ -125,6 +126,16 @@ def homography(labels, threshold=0):
     return homography_matrix
 
 
+def transform_points(points, homography):
+    points = [point[0] for point in points]
+    points = np.array(points, dtype="float32").reshape(-1, 1, 2)
+    transformed_points = cv2.perspectiveTransform(points, homography)
+    transformed_points = [
+        (int(point[0][0]), int(point[0][1])) for point in transformed_points
+    ]
+    return transformed_points
+
+
 def detect(detection_list, model_path, source):
     model = YOLO(model_path)
     detections = model.track(
@@ -162,11 +173,10 @@ def track():
 
         court_data = court_detection_list.pop(0)
         player_data = player_detection_list.pop(0)
-        print(player_data)
         court_data = parse_court(court_data)
         player_data = parse_player(player_data)
-        print("player_data: ", player_data)
         homography_matrix = homography(court_data)
+        transformed_points = transform_points(player_data["Player"], homography_matrix)
 
     player_thread.join()
     court_thread.join()
