@@ -1,5 +1,6 @@
 from ultralytics import YOLO
 from multiprocessing import Process, Queue
+import collections
 
 
 DIAGRAM_POINTS = {
@@ -22,11 +23,24 @@ DIAGRAM_POINTS = {
     },
 }
 
+CLASSES = ["corner", "middle", "paint", "tick"]
+
 
 def center(box):
     x, y, w, h, _, _, _ = box
     x, y, w, h = int(x), int(y), int(w), int(h)
     return (x + int(w / 2), y + int(h / 2))
+
+
+def parse(data):
+    data = data.boxes.data
+    labels = collections.defaultdict(list)
+    for label in data:
+        id = int(label[4])
+        conf = label[5].item()
+        label_class = CLASSES[int(label[6])]
+        labels[label_class].append((center(label), conf, id))
+    return labels
 
 
 def detect(detection_list, model_path, source):
