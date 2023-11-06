@@ -40,13 +40,15 @@ PLAYER_CLASSES = [
 
 
 def center_court(coords):
-    x, y, w, h = coords
-    return (int(x + w / 2), int(y + h / 2))
+    x1, y1, x2, y2 = coords
+    width, height = x2 - x1, y2 - y1
+    return (int(x1 + width / 2), int(y1 + height / 2))
 
 
 def center_player(coords):
-    x, y, w, h = coords
-    return (int(x + w / 2), int(y + h))
+    x1, y1, x2, y2 = coords
+    width, height = x2 - x1, y2 - y1
+    return (int(x1 + width / 2), int(y1 + height))
 
 
 def parse_court(data):
@@ -88,10 +90,10 @@ def define_paint(corners):
     sorted_left_y_corners = sorted(left_corners, key=lambda x: x[1])
     sorted_right_y_corners = sorted(right_corners, key=lambda x: x[1])
     return {
-        "top_left": sorted_left_y_corners[1],
-        "top_right": sorted_right_y_corners[1],
-        "bottom_left": sorted_left_y_corners[0],
-        "bottom_right": sorted_right_y_corners[0],
+        "top_left": sorted_left_y_corners[0],
+        "top_right": sorted_right_y_corners[0],
+        "bottom_left": sorted_left_y_corners[1],
+        "bottom_right": sorted_right_y_corners[1],
     }
 
 
@@ -107,7 +109,7 @@ def homography(labels, threshold=0):
             paint["bottom_right"][0],
             paint["bottom_left"][0],
         ],
-        dtype="float32",
+        dtype=np.float32,
     )
 
     diagram_points = np.array(
@@ -117,7 +119,7 @@ def homography(labels, threshold=0):
             DIAGRAM_POINTS["right_paint"]["b_right"],
             DIAGRAM_POINTS["right_paint"]["b_left"],
         ],
-        dtype="float32",
+        dtype=np.float32,
     )
 
     homography_matrix, _ = cv2.findHomography(court_points, diagram_points)
