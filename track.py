@@ -98,16 +98,16 @@ def define_paint(corners):
 
 
 def homography(labels, threshold=0):
-    paint = define_paint(labels["paint"])
+    paint = define_paint([label[0] for label in labels["paint"]])
     if not paint:
         return None
 
     court_points = np.array(
         [
-            paint["top_left"][0],
-            paint["top_right"][0],
-            paint["bottom_right"][0],
-            paint["bottom_left"][0],
+            paint["top_left"],
+            paint["top_right"],
+            paint["bottom_right"],
+            paint["bottom_left"],
         ],
         dtype=np.float32,
     )
@@ -140,7 +140,7 @@ def transform_points(points, homography):
 def detect(detection_list, model_path, source):
     model = YOLO(model_path)
     detections = model.track(
-        source=source, project="./", conf=0.1, iou=0.5, stream=True, show=True
+        source=source, project="./", conf=0.1, iou=0.5, stream=True
     )
     for detection in detections:
         detection_list.append(detection.boxes.data)
@@ -163,6 +163,9 @@ def track():
     court_thread.start()
     player_thread.start()
 
+    video = cv2.VideoCapture("data/yolo/video.mp4")
+    print(video.read())
+
     while (
         player_thread.is_alive()
         or court_thread.is_alive()
@@ -177,11 +180,35 @@ def track():
         court_data = parse_court(court_data)
         player_data = parse_player(player_data)
         homography_matrix = homography(court_data)
+        _, frame = video.read()
+        if homography_matrix is None:
+            continue
+
         transformed_points = transform_points(player_data["Player"], homography_matrix)
         image = cv2.imread("data/court.png")
+        frame_width = frame.shape[1]
+        font = cv2.FONT_HERSHEY_SIMPLEX
         for x, y in transformed_points:
-            cv2.circle(image, (x, y), radius=5, color=(0, 255, 0), thickness=-1)
-        cv2.imshow("court points", image)
+            cv2.circle(image, (x, y), radius=5, color=(0, 0, 0), thickness=-1)
+            cv2.putText(image, f"({x},{y})", (x, y), font, 0.5, (255, 0, 0), 2)
+
+        for point in player_data["Player"]:
+            point = point[0]
+            x, y = point
+            cv2.circle(frame, point, radius=5, color=(0, 255, 0), thickness=-1)
+            cv2.putText(frame, f"({x},{y})", (x, y), font, 0.4, (0, 0, 0), 1)
+        for point in court_data["paint"]:
+            point = point[0]
+            x, y = point
+            cv2.circle(frame, point, radius=5, color=(0, 0, 0), thickness=-1)
+            cv2.putText(frame, f"({x},{y})", (x, y), font, 0.4, (0, 0, 0), 1)
+
+        image = cv2.resize(
+            image, (frame_width, int(image.shape[0] * (frame_width / image.shape[1])))
+        )
+
+        combined = cv2.vconcat([frame, image])
+        cv2.imshow("Track", combined)
         cv2.waitKey(1)
 
     player_thread.join()
