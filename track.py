@@ -26,17 +26,7 @@ DIAGRAM_POINTS = {
 }
 
 COURT_CLASSES = ["corner", "middle", "paint", "tick"]
-PLAYER_CLASSES = [
-    "Ball",
-    "Hoop",
-    "Period",
-    "Player",
-    "Ref",
-    "Shot Clock",
-    "Team Name",
-    "Team Points",
-    "Time Remaining",
-]
+PLAYER_CLASSES = ["Players", "Referees"]
 
 
 def center_court(coords):
@@ -151,20 +141,20 @@ def track():
     player_detection_list = manager.list()
     court_detection_list = manager.list()
 
+    # Test out different training and models like YOLO-NAS
     player_thread = Process(
         target=detect,
-        args=(player_detection_list, "models/yolo/yolov8t.pt", "data/yolo/video.mp4"),
+        args=(player_detection_list, "models/yolo/yolov8pb.pt", "data/yolo/video.mp4"),
     )
     court_thread = Process(
         target=detect,
-        args=(court_detection_list, "models/yolo/yolov8c.pt", "data/yolo/video.mp4"),
+        args=(court_detection_list, "models/yolo/yolov8cb.pt", "data/yolo/video.mp4"),
     )
 
     court_thread.start()
     player_thread.start()
 
     video = cv2.VideoCapture("data/yolo/video.mp4")
-    print(video.read())
 
     while (
         player_thread.is_alive()
@@ -184,7 +174,7 @@ def track():
         if homography_matrix is None:
             continue
 
-        transformed_points = transform_points(player_data["Player"], homography_matrix)
+        transformed_points = transform_points(player_data["Players"], homography_matrix)
         image = cv2.imread("data/court.png")
         frame_width = frame.shape[1]
         font = cv2.FONT_HERSHEY_SIMPLEX
